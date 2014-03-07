@@ -19,8 +19,8 @@ def ec2_instances():
     return instances
 
 def ip(node):
-    if node.ip_address:
-        return node.ip_address
+    if node.dns_name:
+        return node.dns_name
     else:
         return node.private_ip_address
 
