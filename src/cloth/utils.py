@@ -46,3 +46,9 @@ def use(node):
         pass
     env.nodes += [node]
     env.hosts += [ip(node)]
+
+def unuse(node):
+    "Remove the fabric environment for the specifed node"
+    node_ip = ip(node)
+    env.nodes = filter(lambda x: x != node, env.nodes)
+    env.hosts = filter(lambda x: x != node_ip, env.hosts)

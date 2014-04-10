@@ -36,6 +36,12 @@ def nodes(exp):
         use(node)
 
 @task
+def exclude(exp):
+    "Exclude nodes based on a regular expression"
+    for node in instances(exp):
+        unuse(node)
+
+@task
 @runs_once
 def list():
     "List EC2 name and public and private ip address"
