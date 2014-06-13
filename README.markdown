@@ -48,11 +48,38 @@ The above should list all of your EC2 instances that start with
 'production'. This takes a regex as the argument so you can get whatever
 instances you like.
 
+## Execute
+
+A convenience function called `execute` is provided to easily perform remote
+executions:
+
     ⚡ fab all execute:uptime
 
 As an example of running a command on a set of EC2 instances try the
 above. This should show the uptime and load averages for all your EC2
 instances. Use -P as well to have that happen in parallel.
+
+This command also includes `group` and `count` options to aid in summarization:
+
+    fab all execute:"uname -r",group=true
+
+Shows:
+
+    { '3.10.82-12.101.amzn1.x86_64': [ 'host2',
+                                       'host8'],
+    { '3.10.40-50.136.amzn1.x86_64': [ 'host1',
+                                       'host3',
+                                       'host6',
+                                       'host9']}
+
+Use `count` like so:
+
+    fab all execute:"uname -r",count=true
+
+Shows:
+
+    { '3.10.82-12.101.amzn1.x86_64': 2,
+    { '3.10.40-50.136.amzn1.x86_64': 4}
 
 ## Opinionated Tasks
 
