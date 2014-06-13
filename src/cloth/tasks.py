@@ -1,15 +1,19 @@
 #! /usr/bin/env python
 
+import pprint
+
 from collections import defaultdict
 
-from fabric.api import run, env, sudo, task, runs_once, roles
+import fabric.api
+from fabric.api import run, env, sudo, task, runs_once, roles, parallel
 
 from cloth.utils import instances, use
-
 
 env.nodes = []
 env.roledefs = defaultdict(list)
 
+# setup global results
+env['results'] = {}
 
 @task
 def all():
@@ -17,29 +21,61 @@ def all():
     for node in instances():
         use(node)
 
-@task
-def preview():
-    "Preview nodes"
-    for node in instances('^preview-'):
-        use(node)
+def clean_results(results,group,count,prettyPrint=True):
+  """ Cleanup and print results from a @runs_once exec. """
+  pp = pprint.PrettyPrinter(indent=2)
+  cleaned_results = {}
+  failed_hosts = []
+  for k,v in results.items():
+    if not v:
+      failed_hosts.append(k)
+    else:
+      for kk,vv in v.items():
+        cleaned_results[kk] = vv
+  if group:
+    cleaned_results = group_by_values(cleaned_results)
+  elif count:
+    cleaned_results = count_by_values(cleaned_results)
+  else:
+    cleaned_results = cleaned_results
+  if prettyPrint:
+    if len(failed_hosts) > 0:
+      print "Failed Hosts:"
+      pp.pprint(failed_hosts)
+      print "Results:"
+    pp.pprint(cleaned_results)
 
-@task
-def production():
-    "Production nodes"
-    for node in instances('^production-'):
-        use(node)
+def count_by_values(dictionary):
+    """ Return a dictionary of values, a count of matches."""
+    results = {}
+    for k,v in dictionary.items():
+        if v not in results:
+            results[v] = 0
+        results[v] += 1
+    return results
 
-@task
-def nodes(exp):
-    "Select nodes based on a regular expression"
-    for node in instances(exp):
-        use(node)
+@parallel
+def do_cmd(c):
+    hostname = run('hostname',quiet=True)
+    result = run('{0}'.format(c),quiet=True)
+    return {
+        hostname: result
+    }
 
 @task
 def exclude(exp):
     "Exclude nodes based on a regular expression"
     for node in instances(exp):
         unuse(node)
+
+def group_by_values(dictionary):
+    """ Return a dictionary of values, with keys that match them."""
+    results = {}
+    for k,v in dictionary.items():
+        if v not in results:
+            results[v] = []
+        results[v].append(k)
+    return results
 
 @task
 @runs_once
@@ -50,22 +86,21 @@ def list():
             node.private_ip_address)
 
 @task
-def uptime():
-    "Show uptime and load"
-    run('uptime')
+def nodes(exp):
+    "Select nodes based on a regular expression"
+    for node in instances(exp):
+        use(node)
 
 @task
-def free():
-    "Show memory stats"
-    run('free')
+@runs_once
+def execute(c,group=False,count=False):
+    """
+    Executes a shell command on a remote host.
 
-@task
-def updates():
-    "Show package counts needing updates"
-    run("cat /var/lib/update-notifier/updates-available")
+        c = command to execute.
+        group = if true, group by the result value.
+        count = if true, group by result value, and count.
 
-@task
-def upgrade():
-    "Upgrade packages with apt-get"
-    sudo("apt-get update; apt-get upgrade -y")
-
+    """
+    results = fabric.api.execute(do_cmd,c=c)
+    clean_results(results,group,count)

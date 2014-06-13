@@ -6,7 +6,6 @@ import os
 import boto.ec2
 from fabric.api import env
 
-
 REGION = os.environ.get("AWS_EC2_REGION")
 
 def ec2_instances():
@@ -50,5 +49,5 @@ def use(node):
 def unuse(node):
     "Remove the fabric environment for the specifed node"
     node_ip = ip(node)
-    env.nodes = filter(lambda x: x != node, env.nodes)
+    env.nodes = filter(lambda x: x.dns_name != node.dns_name, env.nodes)
     env.hosts = filter(lambda x: x != node_ip, env.hosts)

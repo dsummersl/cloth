@@ -25,17 +25,14 @@ create a blank fabfile.py with the following contents.
 This will give you a good few commands.
 
     ⚡ fab -l
+
     Available commands:
 
       all         All nodes
-      free        Show memory stats
+      exclude     Exclude specific nodes based on a regular expression.
+      execute     Execute a command on a remote host with options for grouping/counting results.
       list        List EC2 name and public and private ip address
       nodes       Select nodes based on a regular expression
-      preview     Preview nodes
-      production  Production nodes
-      updates     Show package counts needing updates
-      upgrade     Upgrade packages with apt-get
-      uptime      Show uptime and load
 
 Of most interest should be the 'all' and 'nodes' tasks. These allow you
 to load EC2 instances for further command running.
@@ -51,13 +48,11 @@ The above should list all of your EC2 instances that start with
 'production'. This takes a regex as the argument so you can get whatever
 instances you like.
 
-
-    ⚡ fab all uptime
+    ⚡ fab all execute:uptime
 
 As an example of running a command on a set of EC2 instances try the
 above. This should show the uptime and load averages for all your EC2
 instances. Use -P as well to have that happen in parallel.
-
 
 ## Opinionated Tasks
 
@@ -91,4 +86,3 @@ The run that task with:
     ⚡ fab all passenger
 
 That task would only be run on the three backend instances.
-
