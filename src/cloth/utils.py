@@ -23,11 +23,13 @@ def ip(node):
     else:
         return node.private_ip_address
 
-def instances(exp=".*"):
+def instances(exp=".*",nodes=None):
     "Filter list of machines matching an expression"
     expression = re.compile(exp)
     instances = []
-    for node in ec2_instances():
+    if not nodes:
+        nodes = ec2_instances()
+    for node in nodes:
         if node.tags and ip(node):
             try:
                 if expression.match(node.tags.get("Name")):

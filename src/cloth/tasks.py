@@ -7,7 +7,7 @@ from collections import defaultdict
 import fabric.api
 from fabric.api import run, env, sudo, task, runs_once, roles, parallel
 
-from cloth.utils import instances, use
+from cloth.utils import instances, use, unuse
 
 env.nodes = []
 env.roledefs = defaultdict(list)
@@ -65,7 +65,7 @@ def do_cmd(c):
 @task
 def exclude(exp):
     "Exclude nodes based on a regular expression"
-    for node in instances(exp):
+    for node in instances(exp,env.nodes):
         unuse(node)
 
 def group_by_values(dictionary):
